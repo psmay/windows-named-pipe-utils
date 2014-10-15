@@ -1,38 +1,69 @@
 windows-named-pipe-utils
 ========================
 
-Windows commands for interfacing named pipes with stdio streams.
+Windows commands for interfacing named pipes with standard I/O streams.
 
 Synopsis
 --------
 
-### `createAndReadPipe`: Get stdin from a new named pipe
+In the following discussion, `produce` is a program that outputs data on
+`stdout`, while `consume` is a program that reads data on `stdin`. We'll
+demonstrate how to achieve the same result as
 
-*   Substitute your receiving program for `md5sum > out.tmp`.
-    *   Redirecting `stdout` like this is optional, but
-        `createAndReadPipe` prints its own status messages on stderr,
-        which can mix with the program's output in unfashionable ways.
-*   Substitute your sending program for `seq 20`.
-    *   The sending program need not start after the pipe is open nor
-        terminate when it is closed, but it must not attempt to open the
-        pipe before it is created.
-    *   Use of `stdout` is optional. The pipe path can be opened for
-        write just like a regular file in most situations (such as with
-        `fopen()` or `CreateFile()`, or by way of redirection like in
-        this example).
+    produce | consume > result.txt
 
-On one console:
+using named pipes.
 
-    rem Create pipe and read to another program
-    createAndReadPipe MyPipeName | md5sum > out.tmp
+Here are examples I've used for testing purposes. Substitute to taste.
 
-On another console:
+    @ECHO OFF
+    REM produce.bat
+    REM Runs seq (as installed with MSYS).
+    REM Prints a numeric sequence (here, 1 through 20) to stdout.
+    C:\MinGW\msys\1.0\bin\seq.exe 20
 
-    rem Use another program to write to (and close) the pipe
-    rem The pipe path is `\\.\pipe\` followed by the name passed to
-    rem `createAndReadPipe`. Input to the pipe is received on `stdin` by the
-    rem receiving program.
-    seq 20 > \\.\pipe\MyPipeName
+    @ECHO OFF
+    REM consume.bat
+    REM Runs wc (as installed with MSYS).
+    REM Prints newline/word/byte counts of stdin.
+    C:\MinGW\msys\1.0\bin\wc.exe
+
+### `createAndReadPipe`: Get `stdin` from a new inbound named pipe
+
+On one console, do:
+
+    createAndReadPipe MyPipeName | consume > result.txt
+
+Then, on another console, do:
+
+    produce > \\.\pipe\MyPipeName
+
+### `createAndWritePipe`: Put `stdout` to a new outbound named pipe
+
+On one console, do:
+
+    produce | createAndWritePipe MyPipeName
+
+Then, on another console, do:
+
+    consume < \\.\pipe\MyPipeName > result.txt
+
+Notes
+-----
+
+*   `createAndReadPipe` and `createAndWritePipe` are pipe *servers*. The
+    program that subsequently opens the pipe for write or read,
+    respectively, is a *client*.
+*   Each server is designed to open two streams—one to read, one to
+    write—and continually read from the first and write to the second.
+    When an EOF or broken pipe is detected on either stream, the server
+    exits normally and the named pipe ceases to exist.
+*   The client program is not required to use redirection to connect.
+    The pipe path can usually be opened and used as a regular file, so
+    another program may open and use it without any extraordinary calls.
+    *   The client must not, however, attempt to open the file before it
+        exists. The client may run before the server starts, but it
+        cannot open the pipe until the server creates it.
 
 Build
 -----

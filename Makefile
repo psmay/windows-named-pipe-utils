@@ -18,7 +18,7 @@ COMMON_OBJECTS=$(patsubst %.c,%.o,$(COMMON_SOURCES))
 CFLAGS=-Os
 LDFLAGS=
 
-all: createAndReadPipe
+all: createAndReadPipe createAndWritePipe
 
 -include $(ALL_OBJECTS:.o=.d)
 
@@ -31,6 +31,9 @@ all: createAndReadPipe
 	gcc -c $(CFLAGS) $< -o $@
 
 createAndReadPipe: $(COMMON_OBJECTS) createAndReadPipe-main.o
+	gcc $(CFLAGS) $(LDFLAGS) -s -o $@ $^
+
+createAndWritePipe: $(COMMON_OBJECTS) createAndWritePipe-main.o
 	gcc $(CFLAGS) $(LDFLAGS) -s -o $@ $^
 
 #-- Footer - See target.mk for details

@@ -114,6 +114,10 @@ BOOL run_passthrough(HANDLE reader, HANDLE writer)
 					pinfo("Output stream disconnected.");
 					return TRUE;
 				}
+				else if(err == ERROR_NO_DATA) {
+					pinfo("Output stream closed on receiving side.");
+					return TRUE;
+				}
 				else {
 					perror("Error writing to output stream; error code was 0x%08x.", err);
 					return FALSE;
