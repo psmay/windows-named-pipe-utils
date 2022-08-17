@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <windows.h>
 
-#define PASSTHROUGH_BUFFER_SIZE 4096
-
 #define PIPE_PATH_PREFIX "\\\\.\\pipe\\"
 
 #define EXIT_CODE_USAGE 1
@@ -49,6 +47,6 @@ BOOL wait_for_pipe_client(HANDLE pipe);
 // reaches EOF, the input is disconnected, or the output is disconnected (or
 // an error occurs with a read or write). The streams must both be already
 // open, and this function won't close them.
-BOOL run_passthrough(HANDLE reader, HANDLE writer);
+BOOL run_passthrough(HANDLE reader, HANDLE writer, unsigned long buffer_size);
 
 #endif
