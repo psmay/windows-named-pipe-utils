@@ -12,11 +12,16 @@ int main(int argc, char** argv)
 {
 	PROGRAM_NAME = argv[0];
 
-	if(argc != 2) {
+	if(argc < 2 || argc > 3) {
 		pinfo("Usage: %s PIPENAME", get_program_name());
 		pinfo("Creates a named pipe at %sPIPENAME and reads it to stdout.", PIPE_PATH_PREFIX);
 		return EXIT_CODE_USAGE;
 	}
+
+    unsigned long buffer_size = 1024*1024*10; // 10 MiB
+    if (argc == 3) {
+        buffer_size = strtoul(argv[2], NULL, 10);
+    }
 
 	HANDLE pipe, outh;
 	BOOL is_connected;
@@ -44,7 +49,7 @@ int main(int argc, char** argv)
 	if(is_connected) {
 		pinfo("Connected.");
 
-		if(run_passthrough(pipe, outh)) {
+		if(run_passthrough(pipe, outh, buffer_size)) {
 			exit_code = 0;
 		}
 		else {
